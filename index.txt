@@ -1,0 +1,111 @@
+document.addEventListener('DOMContentLoaded', () => {
+  // --- DATA ---
+  const alumniData = [
+    { id: 1, name: 'John Doe', year: 2010, major: 'Computer Science' },
+    { id: 2, name: 'Jane Smith', year: 2012, major: 'Business' },
+    { id: 3, name: 'Peter Jones', year: 2008, major: 'Engineering' }
+  ];
+
+  const eventsData = [
+    { id: 1, title: 'Annual Homecoming Gala', date: 'October 25, 2025' },
+    { id: 2, title: 'Tech Networking Night', date: 'November 12, 2025' },
+  ];
+
+  // --- DOM ELEMENTS ---
+  const loginScreen = document.getElementById('login-screen');
+  const userInterface = document.getElementById('user-interface');
+  const adminInterface = document.getElementById('admin-interface');
+
+  const userContent = document.getElementById('user-app-content');
+  const adminContent = document.getElementById('admin-app-content');
+  
+  const errorMessage = document.getElementById('error-message');
+
+  // --- TEMPLATE FUNCTIONS (Generates HTML for each page) ---
+  const userPages = {
+    home: () => `<div class="page-content"><h2>Welcome Back, Alumnus!</h2><p>This is your personalized dashboard. Stay connected, find old friends, and see what's new.</p></div>`,
+    directory: () => `<div class="page-content"><h2>Alumni Directory</h2><div class="alumni-list"><ul>${alumniData.map(a => `<li><b>${a.name}</b> - ${a.major} (${a.year})</li>`).join('')}</ul></div></div>`,
+    events: () => `<div class="page-content"><h2>Upcoming Events</h2><div class="events-grid">${eventsData.map(e => `<div class="event-card"><div class="event-card-content"><h3>${e.title}</h3><p>${e.date}</p></div></div>`).join('')}</div></div>`
+  };
+
+  const adminPages = {
+    dashboard: () => `<div class="page-content"><h2>Admin Dashboard</h2><p>Total Alumni: ${alumniData.length}</p><p>Upcoming Events: ${eventsData.length}</p></div>`,
+    'manage-alumni': () => `<div class="page-content"><h2>Manage Alumni</h2><table class="manage-table"><thead><tr><th>Name</th><th>Year</th><th>Major</th></tr></thead><tbody>${alumniData.map(a => `<tr><td>${a.name}</td><td>${a.year}</td><td>${a.major}</td></tr>`).join('')}</tbody></table></div>`,
+    'post-event': () => `<div class="page-content"><h2>Post a New Event</h2><form id="event-form"><div class="form-group"><label for="title">Event Title</label><input type="text" id="title" required></div><div class="form-group"><label for="date">Event Date</label><input type="date" id="date" required></div><button type="submit" class="submit-btn" style="background-color: var(--admin-accent)">Post Event</button></form></div>`
+  };
+  
+  // --- CORE LOGIC ---
+
+  function setupEventListeners() {
+    // Login form
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
+
+    // Logout buttons
+    document.getElementById('user-logout-btn').addEventListener('click', logout);
+    document.getElementById('admin-logout-btn').addEventListener('click', logout);
+
+    // Navigation links
+    document.getElementById('user-nav').addEventListener('click', (e) => handleNav(e, 'user'));
+    document.getElementById('admin-nav').addEventListener('click', (e) => handleNav(e, 'admin'));
+  }
+  
+  function handleLogin(event) {
+    event.preventDefault();
+    const email = document.getElementById('email').value.toLowerCase();
+    
+    // Hide previous error
+    errorMessage.classList.add('hidden');
+
+    if (email === 'user@example.com') {
+      showInterface('user');
+    } else if (email === 'admin@example.com') {
+      showInterface('admin');
+    } else {
+      // Show error message
+      errorMessage.classList.remove('hidden');
+    }
+  }
+
+  function showInterface(role) {
+    loginScreen.classList.add('hidden');
+    if (role === 'user') {
+      userInterface.classList.remove('hidden');
+      renderPage('user', 'home');
+    } else if (role === 'admin') {
+      adminInterface.classList.remove('hidden');
+      renderPage('admin', 'dashboard');
+    }
+  }
+
+  function logout() {
+    userInterface.classList.add('hidden');
+    adminInterface.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+    document.getElementById('login-form').reset(); // Clear login form
+  }
+  
+  function handleNav(event, role) {
+    if (event.target.matches('.nav-link') && event.target.dataset.page) {
+      event.preventDefault();
+      renderPage(role, event.target.dataset.page);
+    }
+  }
+
+  function renderPage(role, pageId) {
+    const nav = document.getElementById(`${role}-nav`);
+    const contentArea = (role === 'user') ? userContent : adminContent;
+    const pageTemplates = (role === 'user') ? userPages : adminPages;
+
+    // Update nav active state
+    nav.querySelector('.active').classList.remove('active');
+    nav.querySelector(`[data-page=${pageId}]`).classList.add('active');
+
+    // Render content
+    if (pageTemplates[pageId]) {
+      contentArea.innerHTML = pageTemplates[pageId]();
+    }
+  }
+
+  // --- INITIALIZE ---
+  setupEventListeners();
+});
